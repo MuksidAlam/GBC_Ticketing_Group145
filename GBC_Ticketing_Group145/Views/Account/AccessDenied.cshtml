@@ -1,0 +1,21 @@
+@{
+    ViewData["Title"] = "Access Denied";
+}
+
+<div class="container mt-5">
+    <div class="row justify-content-center">
+        <div class="col-md-8 col-lg-6">
+            <div class="card border-danger shadow-sm">
+                <div class="card-body text-center p-5">
+                    <h1 class="card-title mt-3 mb-3">Access Denied</h1>
+                    <p class="card-text text-muted mb-4">
+                        You do not have permission to access this page.
+                    </p>
+                    <a asp-controller="Home" asp-action="Index" class="btn btn-primary">
+                        Go to Home
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
