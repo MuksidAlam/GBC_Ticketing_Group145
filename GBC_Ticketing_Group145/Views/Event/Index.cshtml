@@ -1,0 +1,110 @@
+@model IEnumerable<GBC_Ticketing_Group145.Models.Event>
+
+@{
+    ViewData["Title"] = "Events List";
+}
+
+<h1>Event Catalog (<span id="eventCount">@ViewData["TotalEvents"]</span>)</h1>
+
+<p>
+    <a asp-action="Create" class="btn btn-primary">Create New Event</a>
+</p>
+
+<div class="mb-4 p-3 border rounded bg-light">
+    <div class="row g-3 align-items-end">
+        
+        <div class="col-md-4">
+            <label for="liveSearchInput" class="form-label">Live Search by Title</label>
+            <input type="text" id="liveSearchInput" class="form-control" placeholder="Type to search events..." />
+        </div>
+
+        <div class="col-md-4">
+            <label for="liveCategoryFilter" class="form-label">Filter by Category</label>
+            <select id="liveCategoryFilter" class="form-select">
+                <option value="0">All Categories</option>
+                @foreach (var category in ViewData["Categories"] as SelectList ?? new SelectList(Enumerable.Empty<object>()))
+                {
+                    <option value="@category.Value">@category.Text</option>
+                }
+            </select>
+        </div>
+
+        <div class="col-md-4">
+            <label for="liveSortOrder" class="form-label">Sort By</label>
+            <select id="liveSortOrder" class="form-select">
+                <option value="">Title (A-Z)</option>
+                <option value="title_desc">Title (Z-A)</option>
+                <option value="Date">Date (Earliest)</option>
+                <option value="date_desc">Date (Latest)</option>
+                <option value="Price">Price (Low to High)</option>
+                <option value="price_desc">Price (High to Low)</option>
+            </select>
+        </div>
+    </div>
+    <div class="mt-2">
+        <small class="text-muted">Results update automatically as you type or change filters</small>
+    </div>
+</div>
+
+<div id="loadingSpinner" class="text-center my-4" style="display: none;">
+    <div class="spinner-border text-primary" role="status">
+        <span class="visually-hidden">Loading...</span>
+    </div>
+    <p class="mt-2">Loading events...</p>
+</div>
+
+<div id="eventsContainer">
+    <partial name="_EventPartial" model="Model" />
+</div>
+
+@section Scripts {
+    <script>
+        let searchTimeout;
+
+        function loadEvents() {
+            const searchString = $('#liveSearchInput').val();
+            const categoryId = $('#liveCategoryFilter').val();
+            const sortOrder = $('#liveSortOrder').val();
+
+            $('#loadingSpinner').show();
+            $('#eventsContainer').css('opacity', '0.5');
+
+            $.ajax({
+                url: '@Url.Action("SearchEvents", "Event")',
+                type: 'GET',
+                data: {
+                    searchString: searchString,
+                    categoryId: categoryId,
+                    sortOrder: sortOrder
+                },
+                success: function(data) {
+                    $('#eventsContainer').html(data);
+                    $('#loadingSpinner').hide();
+                    $('#eventsContainer').css('opacity', '1');
+                    
+                    // Update count
+                    const count = $('#eventsContainer table tbody tr').length;
+                    $('#eventCount').text(count);
+                },
+                error: function() {
+                    $('#loadingSpinner').hide();
+                    $('#eventsContainer').css('opacity', '1');
+                    alert('Error loading events. Please try again.');
+                }
+            });
+        }
+
+        // Live search with debounce (300ms delay)
+        $('#liveSearchInput').on('input', function() {
+            clearTimeout(searchTimeout);
+            searchTimeout = setTimeout(function() {
+                loadEvents();
+            }, 300);
+        });
+
+        // Instant filter on category/sort change
+        $('#liveCategoryFilter, #liveSortOrder').on('change', function() {
+            loadEvents();
+        });
+    </script>
+}
