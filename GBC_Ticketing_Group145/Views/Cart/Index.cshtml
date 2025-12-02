@@ -1,0 +1,190 @@
+@model List<GBC_Ticketing_Group145.Models.CartItem>
+
+@{
+    ViewData["Title"] = "Shopping Cart";
+}
+
+<div class="row">
+    <div class="col-lg-8">
+        <h2>Your Shopping Cart</h2>
+
+        @if (Model == null || !Model.Any())
+        {
+            <div class="alert alert-info mt-4">
+                Your cart is empty.
+                <a asp-controller="Event" asp-action="Index" class="alert-link">Browse events</a> to get started!
+            </div>
+        }
+        else
+        {
+            <div class="table-responsive mt-4">
+                <table class="table table-hover">
+                    <thead>
+                        <tr>
+                            <th>Event</th>
+                            <th>Category</th>
+                            <th>Unit Price</th>
+                            <th>Quantity</th>
+                            <th>Subtotal</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var item in Model)
+                        {
+                            <tr id="cart-row-@item.EventId">
+                                <td>
+                                    <strong>@item.Event?.Title</strong><br />
+                                    <small class="text-muted">@item.Event?.DateTime.ToString("MMM dd, yyyy h:mm tt")</small>
+                                </td>
+                                <td>
+                                    <span class="badge bg-secondary">@item.Event?.Category?.Name</span>
+                                </td>
+                                <td>$@item.UnitPrice.ToString("0.00")</td>
+                                <td>
+                                    <div class="input-group" style="max-width: 120px;">
+                                        <button class="btn btn-outline-secondary btn-sm qty-btn" data-action="decrease" data-event-id="@item.EventId">-</button>
+                                        <input type="number" class="form-control form-control-sm text-center qty-input" value="@item.Quantity" min="1" max="10" readonly />
+                                        <button class="btn btn-outline-secondary btn-sm qty-btn" data-action="increase" data-event-id="@item.EventId">+</button>
+                                    </div>
+                                </td>
+                                <td class="item-subtotal"><strong>$@((item.Quantity * item.UnitPrice).ToString("0.00"))</strong></td>
+                                <td>
+                                    <button class="btn btn-sm btn-danger remove-item-btn" data-event-id="@item.EventId">
+                                        Remove
+                                    </button>
+                                </td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+        }
+    </div>
+
+    <div class="col-lg-4">
+        @if (Model != null && Model.Any())
+        {
+            <div class="card">
+                <div class="card-header bg-primary text-white">
+                    <h5 class="mb-0">Order Summary</h5>
+                </div>
+                <div class="card-body">
+                    <div class="d-flex justify-content-between mb-2">
+                        <span>Subtotal:</span>
+                        <strong id="cart-subtotal">$@Model.Sum(i => i.Quantity * i.UnitPrice).ToString("0.00")</strong>
+                    </div>
+                    <div class="d-flex justify-content-between mb-2">
+                        <span>Service Fee:</span>
+                        <strong>$0.00</strong>
+                    </div>
+                    <hr />
+                    <div class="d-flex justify-content-between mb-3">
+                        <h5>Total:</h5>
+                        <h5 id="cart-total" class="text-primary">$@Model.Sum(i => i.Quantity * i.UnitPrice).ToString("0.00")</h5>
+                    </div>
+                    <a asp-controller="Purchase" asp-action="Checkout" class="btn btn-primary w-100 mb-2">
+                        Proceed to Checkout
+                    </a>
+                    <form asp-action="ClearCart" method="post" class="d-grid">
+                        <button type="submit" class="btn btn-outline-danger w-100" onclick="return confirm('Clear all items from cart?')">
+                            Clear Cart
+                        </button>
+                    </form>
+                </div>
+            </div>
+        }
+        else
+        {
+            <div class="card">
+                <div class="card-body text-center">
+                    <p class="text-muted">No items in cart</p>
+                    <a asp-controller="Event" asp-action="Index" class="btn btn-primary">
+                        Browse Events
+                    </a>
+                </div>
+            </div>
+        }
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        // Quantity controls
+        $('.qty-btn').on('click', function() {
+            const button = $(this);
+            const action = button.data('action');
+            const eventId = button.data('event-id');
+            const row = $('#cart-row-' + eventId);
+            const input = row.find('.qty-input');
+            let quantity = parseInt(input.val());
+
+            if (action === 'increase') {
+                quantity++;
+            } else if (action === 'decrease' && quantity > 1) {
+                quantity--;
+            }
+
+            updateQuantity(eventId, quantity, row);
+        });
+
+        // Remove item
+        $('.remove-item-btn').on('click', function() {
+            if (!confirm('Remove this item from cart?')) return;
+
+            const eventId = $(this).data('event-id');
+            const row = $('#cart-row-' + eventId);
+
+            $.ajax({
+                url: '@Url.Action("RemoveItem", "Cart")',
+                type: 'POST',
+                contentType: 'application/json',
+                data: JSON.stringify({ eventId: eventId, quantity: 0 }),
+                success: function(response) {
+                    if (response.success) {
+                        row.fadeOut(400, function() {
+                            $(this).remove();
+                            updateCartBadge();
+                            updateTotals();
+                            
+                            // Reload if cart is empty
+                            if ($('tbody tr').length === 0) {
+                                location.reload();
+                            }
+                        });
+                    }
+                }
+            });
+        });
+
+        function updateQuantity(eventId, quantity, row) {
+            $.ajax({
+                url: '@Url.Action("UpdateQuantity", "Cart")',
+                type: 'POST',
+                contentType: 'application/json',
+                data: JSON.stringify({
+                    eventId: eventId,
+                    quantity: quantity
+                }),
+                success: function(response) {
+                    if (response.success) {
+                        row.find('.qty-input').val(quantity);
+                        row.find('.item-subtotal strong').text('$' + response.itemTotal.toFixed(2));
+                        updateCartBadge();
+                        updateTotals();
+                    }
+                }
+            });
+        }
+
+        function updateTotals() {
+            let total = 0;
+            $('.item-subtotal strong').each(function() {
+                const value = parseFloat($(this).text().replace('$', ''));
+                total += value;
+            });
+            $('#cart-subtotal').text('$' + total.toFixed(2));
+            $('#cart-total').text('$' + total.toFixed(2));
+        }
+    </script>
+}

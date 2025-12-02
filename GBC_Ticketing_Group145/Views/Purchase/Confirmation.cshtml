@@ -1,0 +1,40 @@
+@model GBC_Ticketing_Group145.Models.Purchase
+
+@{
+    ViewData["Title"] = "Purchase Confirmation";
+}
+
+<h1>Ticket Purchase Confirmed! </h1>
+<hr />
+
+<div class="alert alert-success" role="alert">
+    Your tickets for <strong>@Model.Event?.Title</strong> have been successfully purchased. A confirmation will be sent to <strong>@Model.GuestEmail</strong>.
+</div>
+
+<h3 class="text-primary">Order Summary</h3>
+
+<div class="card p-4">
+    <dl class="row">
+        <dt class="col-sm-3">Event Title:</dt>
+        <dd class="col-sm-9">@Model.Event?.Title</dd>
+        
+        <dt class="col-sm-3">Event Date:</dt>
+        <dd class="col-sm-9">@Model.Event?.DateTime.ToString("f")</dd>
+
+        <dt class="col-sm-3">Purchase Date:</dt>
+        <dd class="col-sm-9">@Model.PurchaseDate.ToString("f")</dd>
+
+        <dt class="col-sm-3">Purchaser Name:</dt>
+        <dd class="col-sm-9">@Model.GuestName</dd>
+
+        <dt class="col-sm-3">Total Tickets:</dt>
+        <dd class="col-sm-9">@Model.Quantity</dd>
+        
+        <dt class="col-sm-3">Total Cost:</dt>
+        <dd class="col-sm-9"><strong class="text-danger fs-5">@Model.TotalCost.ToString("C")</strong></dd>
+    </dl>
+</div>
+
+<div class="mt-4">
+    <a asp-controller="Event" asp-action="Index" class="btn btn-secondary">Back to Event List</a>
+</div>

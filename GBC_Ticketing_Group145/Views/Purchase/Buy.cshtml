@@ -1,0 +1,81 @@
+@model GBC_Ticketing_Group145.Models.Purchase
+
+@{
+    ViewData["Title"] = "Buy Tickets";
+}
+
+<h1>Purchase Tickets</h1>
+
+<h3 class="mb-4">Event: @Model.Event?.Title (@Model.Event?.Category?.Name)</h3>
+
+<div class="card p-4 mb-4 bg-light">
+    <dl class="row">
+        <dt class="col-sm-3">Date & Time:</dt>
+        <dd class="col-sm-9">@Model.Event?.DateTime.ToString("MM/dd/yyyy h:mm tt")</dd>
+        
+        <dt class="col-sm-3">Price Per Ticket:</dt>
+        <dd class="col-sm-9">@Model.Event?.TicketPrice.ToString("C")</dd>
+        
+        <dt class="col-sm-3">Tickets Remaining:</dt>
+        <dd class="col-sm-9">
+            <span class="badge @((Model.Event?.AvailableTickets < 5) ? "bg-danger" : "bg-success")">
+                @Model.Event?.AvailableTickets
+            </span>
+        </dd>
+    </dl>
+</div>
+
+@* Display error message if tickets are sold out or validation failed on POST *@
+@if (TempData["Message"] != null)
+{
+    <div class="alert alert-warning">
+        @TempData["Message"]
+    </div>
+}
+
+<input type="hidden" id="PricePerTicket" value="@Model.Event?.TicketPrice" /> 
+
+<div class="alert alert-info mb-4">
+    Total Estimated Cost: <strong id="TotalCostDisplay">@Model.Event?.TicketPrice.ToString("C")</strong>
+</div>
+
+<h4>Guest Information</h4>
+<hr />
+<div class="row">
+    <div class="col-md-6">
+        <form asp-controller="Purchase" asp-action="Buy" method="post">
+            <div asp-validation-summary="ModelOnly" class="text-danger"></div>
+            
+            <input type="hidden" asp-for="EventId" />
+
+            <div class="form-group mb-3">
+                <label asp-for="GuestName" class="control-label"></label>
+                <input asp-for="GuestName" class="form-control" />
+                <span asp-validation-for="GuestName" class="text-danger"></span>
+            </div>
+            
+            <div class="form-group mb-3">
+                <label asp-for="GuestEmail" class="control-label"></label>
+                <input asp-for="GuestEmail" class="form-control" />
+                <span asp-validation-for="GuestEmail" class="text-danger"></span>
+            </div>
+
+            <div class="form-group mb-3">
+                <label asp-for="Quantity" class="control-label"></label>
+                <input asp-for="Quantity" class="form-control" type="number" min="1" max="@Model.Event?.AvailableTickets" value="1" id="Quantity" />
+                <span asp-validation-for="Quantity" class="text-danger"></span>
+            </div>
+
+            <div class="form-group">
+                <input type="submit" value="Complete Purchase" class="btn btn-primary" />
+                <a asp-action="Index" asp-controller="Event" class="btn btn-secondary">Cancel</a>
+            </div>
+        </form>
+    </div>
+</div>
+
+@section Scripts {
+    @{await Html.RenderPartialAsync("_ValidationScriptsPartial");}
+    
+    <script src="~/js/site.js" asp-append-version="true"></script>
+}

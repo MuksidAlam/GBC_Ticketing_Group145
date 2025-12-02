@@ -1,0 +1,189 @@
+@model List<GBC_Ticketing_Group145.Models.CartItem>
+
+@{
+    ViewData["Title"] = "Checkout";
+}
+
+<div class="row">
+    <div class="col-lg-7">
+        <h2>Checkout</h2>
+        
+        <div class="card mt-4">
+            <div class="card-header bg-primary text-white">
+                <h5 class="mb-0">Customer Information</h5>
+            </div>
+            <div class="card-body">
+                <form id="checkoutForm">
+                    <div class="mb-3">
+                        <label for="guestName" class="form-label">Full Name *</label>
+                        <input type="text" class="form-control" id="guestName" value="@User.Identity?.Name" required />
+                    </div>
+                    <div class="mb-3">
+                        <label for="guestEmail" class="form-label">Email Address *</label>
+                        <input type="email" class="form-control" id="guestEmail" value="@User.Identity?.Name" required />
+                    </div>
+                    <hr />
+                    <h6 class="mb-3">Payment Method</h6>
+                    <div class="alert alert-info">
+                        This is a demo checkout. No real payment will be processed.
+                    </div>
+                    <button type="submit" class="btn btn-primary btn-lg w-100" id="completeCheckoutBtn">
+                        Complete Purchase
+                    </button>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-lg-5">
+        <div class="card">
+            <div class="card-header bg-secondary text-white">
+                <h5 class="mb-0">Order Summary</h5>
+            </div>
+            <div class="card-body">
+                @if (Model != null && Model.Any())
+                {
+                    <ul class="list-unstyled">
+                        @foreach (var item in Model)
+                        {
+                            <li class="mb-3 pb-3 border-bottom">
+                                <div class="d-flex justify-content-between">
+                                    <div>
+                                        <strong>@item.Event?.Title</strong><br />
+                                        <small class="text-muted">Quantity: @item.Quantity × $@item.UnitPrice.ToString("0.00")</small>
+                                    </div>
+                                    <div>
+                                        <strong>$@((item.Quantity * item.UnitPrice).ToString("0.00"))</strong>
+                                    </div>
+                                </div>
+                            </li>
+                        }
+                    </ul>
+                    <hr />
+                    <div class="d-flex justify-content-between mb-2">
+                        <span>Subtotal:</span>
+                        <strong>$@Model.Sum(i => i.Quantity * i.UnitPrice).ToString("0.00")</strong>
+                    </div>
+                    <div class="d-flex justify-content-between mb-3">
+                        <h5>Total:</h5>
+                        <h5 class="text-primary">$@Model.Sum(i => i.Quantity * i.UnitPrice).ToString("0.00")</h5>
+                    </div>
+                }
+                else
+                {
+                    <p class="text-muted">No items to checkout</p>
+                }
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Success Modal with Confetti -->
+<div class="modal fade" id="successModal" tabindex="-1" aria-hidden="true" data-bs-backdrop="static" data-bs-keyboard="false">
+    <div class="modal-dialog modal-dialog-centered modal-lg">
+        <div class="modal-content">
+            <div class="modal-header bg-success text-white border-0">
+                <h5 class="modal-title">Purchase Successful!</h5>
+            </div>
+            <div class="modal-body text-center py-5">
+                <canvas id="confettiCanvas" style="position: fixed; top: 0; left: 0; width: 100%; height: 100%; pointer-events: none; z-index: 9999;"></canvas>
+                
+                <div class="mb-4">
+                    <h3 class="mb-3">Thank You for Your Purchase!</h3>
+                    <p class="lead" id="purchaseMessage">Your tickets have been confirmed.</p>
+                </div>
+
+                <div class="alert alert-info">
+                    Confirmation email sent to <strong id="confirmEmail"></strong>
+                </div>
+
+                <div class="d-grid gap-2 mt-4">
+                    <a asp-controller="Dashboard" asp-action="MyTickets" class="btn btn-primary btn-lg">
+                        View My Tickets
+                    </a>
+                    <a asp-controller="Event" asp-action="Index" class="btn btn-outline-secondary">
+                        Browse More Events
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.9.2/dist/confetti.browser.min.js"></script>
+    <script>
+        $('#checkoutForm').on('submit', function(e) {
+            e.preventDefault();
+
+            const guestName = $('#guestName').val();
+            const guestEmail = $('#guestEmail').val();
+
+            if (!guestName || !guestEmail) {
+                alert('Please fill in all required fields');
+                return;
+            }
+
+            $('#completeCheckoutBtn').prop('disabled', true).html('Processing...');
+
+            $.ajax({
+                url: '@Url.Action("ProcessCheckout", "Purchase")',
+                type: 'POST',
+                contentType: 'application/json',
+                data: JSON.stringify({
+                    guestName: guestName,
+                    guestEmail: guestEmail
+                }),
+                success: function(response) {
+                    if (response.success) {
+                        // Update modal content
+                        $('#purchaseMessage').text(`Successfully purchased ${response.ticketCount} ticket(s) for $${response.totalCost.toFixed(2)}`);
+                        $('#confirmEmail').text(guestEmail);
+
+                        // Show modal
+                        $('#successModal').modal('show');
+
+                        // Trigger confetti
+                        triggerConfetti();
+
+                        // Update cart badge
+                        $('#cartBadge').hide();
+                    } else {
+                        alert('Purchase failed: ' + response.message);
+                        $('#completeCheckoutBtn').prop('disabled', false).html('Complete Purchase');
+                    }
+                },
+                error: function() {
+                    alert('An error occurred during checkout. Please try again.');
+                    $('#completeCheckoutBtn').prop('disabled', false).html('Complete Purchase');
+                }
+            });
+        });
+
+        function triggerConfetti() {
+            const duration = 3000;
+            const end = Date.now() + duration;
+
+            (function frame() {
+                confetti({
+                    particleCount: 3,
+                    angle: 60,
+                    spread: 55,
+                    origin: { x: 0 },
+                    colors: ['#28a745', '#20c997', '#17a2b8']
+                });
+                confetti({
+                    particleCount: 3,
+                    angle: 120,
+                    spread: 55,
+                    origin: { x: 1 },
+                    colors: ['#28a745', '#20c997', '#17a2b8']
+                });
+
+                if (Date.now() < end) {
+                    requestAnimationFrame(frame);
+                }
+            }());
+        }
+    </script>
+}
