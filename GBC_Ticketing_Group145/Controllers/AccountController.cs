@@ -56,10 +56,16 @@ public class AccountController : Controller
 
             if (result.Succeeded)
             {
-                // Assign default role
-                await _userManager.AddToRoleAsync(user, Roles.Attendee);
+                // Assign selected role (only allow Attendee or Organizer for registration)
+                var roleToAssign = model.SelectedRole;
+                if (roleToAssign != Roles.Attendee && roleToAssign != Roles.Organizer)
+                {
+                    roleToAssign = Roles.Attendee; // Default to Attendee if invalid role selected
+                }
 
-                _logger.LogInformation("User {Email} registered successfully", model.Email);
+                await _userManager.AddToRoleAsync(user, roleToAssign);
+
+                _logger.LogInformation("User {Email} registered successfully with role {Role}", model.Email, roleToAssign);
 
                 await _signInManager.SignInAsync(user, isPersistent: false);
                 return RedirectToAction("Index", "Event");

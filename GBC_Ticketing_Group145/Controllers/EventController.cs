@@ -11,7 +11,6 @@ using System.Security.Claims;
 
 namespace GBC_Ticketing_Group145.Controllers
 {
-    [Authorize]
     public class EventController : Controller
     {
         private readonly ApplicationDbContext _context;
@@ -161,6 +160,7 @@ namespace GBC_Ticketing_Group145.Controllers
         }
 
         // GET: Event/Edit/5
+        [Authorize(Roles = "Organizer,Admin")]
         public async Task<IActionResult> Edit(int? id)
         {
             if (id == null) return NotFound();
@@ -181,6 +181,7 @@ namespace GBC_Ticketing_Group145.Controllers
         // POST: Event/Edit/5
         [HttpPost]
         [ValidateAntiForgeryToken]
+        [Authorize(Roles = "Organizer,Admin")]
         public async Task<IActionResult> Edit(int id, [Bind("Id,Title,Description,Location,CategoryId,EventDate,Price,AvailableTickets,IsActive,OrganizerId,CreatedAt")] Event @event)
         {
             if (id != @event.Id) return NotFound();
@@ -226,6 +227,7 @@ namespace GBC_Ticketing_Group145.Controllers
         }
 
         // GET: Event/Delete/5
+        [Authorize(Roles = "Organizer,Admin")]
         public async Task<IActionResult> Delete(int? id)
         {
             if (id == null) return NotFound();
@@ -247,6 +249,7 @@ namespace GBC_Ticketing_Group145.Controllers
         // POST: Event/Delete/5
         [HttpPost, ActionName("Delete")]
         [ValidateAntiForgeryToken]
+        [Authorize(Roles = "Organizer,Admin")]
         public async Task<IActionResult> DeleteConfirmed(int id)
         {
             var @event = await _context.Events.FindAsync(id);

@@ -6,6 +6,7 @@ using GBC_Ticketing_Group145.Models;
 using GBC_Ticketing_Group145.Services;
 using GBC_Ticketing_Group145.ViewModels;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Logging;
 
 namespace GBC_Ticketing_Group145.Controllers;
 
@@ -16,13 +17,15 @@ public class DashboardController : Controller
     private readonly UserManager<ApplicationUser> _userManager;
     private readonly IPdfService _pdfService;
     private readonly IQRCodeService _qrService;
+    private readonly ILogger<DashboardController> _logger;
 
-    public DashboardController(ApplicationDbContext db, UserManager<ApplicationUser> userManager, IPdfService pdfService, IQRCodeService qrService)
+    public DashboardController(ApplicationDbContext db, UserManager<ApplicationUser> userManager, IPdfService pdfService, IQRCodeService qrService, ILogger<DashboardController> logger)
     {
         _db = db;
         _userManager = userManager;
         _pdfService = pdfService;
         _qrService = qrService;
+        _logger = logger;
     }
 
     // GET: /Dashboard/MyTickets
@@ -43,19 +46,55 @@ public class DashboardController : Controller
     // GET: /Dashboard/DownloadTicket/5
     public async Task<IActionResult> DownloadTicket(int id)
     {
-        var user = await _userManager.GetUserAsync(User);
-        if (user == null) return Challenge();
+        try
+        {
+            var user = await _userManager.GetUserAsync(User);
+            if (user == null)
+            {
+                _logger.LogWarning("User not found when trying to download ticket {TicketId}", id);
+                return Challenge();
+            }
 
-        var ticket = await _db.Tickets.Include(t => t.Event).FirstOrDefaultAsync(t => t.Id == id && t.AttendeeId == user.Id);
-        if (ticket == null) return NotFound();
+            var ticket = await _db.Tickets.Include(t => t.Event).FirstOrDefaultAsync(t => t.Id == id && t.AttendeeId == user.Id);
+            if (ticket == null)
+            {
+                _logger.LogWarning("Ticket {TicketId} not found for user {UserId}", id, user.Id);
+                return NotFound();
+            }
 
-        // Ensure QR exists
-        var qrBase64 = ticket.QRCode ?? _qrService.GenerateQRCode($"ticket:{ticket.Id}:{user.Id}");
+            // Ensure QR exists and save it to database if generated
+            var qrBase64 = ticket.QRCode;
+            if (string.IsNullOrEmpty(qrBase64))
+            {
+                _logger.LogInformation("Generating QR code for ticket {TicketId}", ticket.Id);
+                qrBase64 = _qrService.GenerateQRCode($"ticket:{ticket.Id}:{user.Id}");
+                if (string.IsNullOrEmpty(qrBase64))
+                {
+                    _logger.LogError("Failed to generate QR code for ticket {TicketId}", ticket.Id);
+                    return StatusCode(500, "Failed to generate ticket QR code. Please try again.");
+                }
+                ticket.QRCode = qrBase64;
+                await _db.SaveChangesAsync();
+                _logger.LogInformation("QR code saved to database for ticket {TicketId}", ticket.Id);
+            }
 
-        var pdfBytes = _pdfService.GenerateTicketPdf(ticket, user, qrBase64);
+            _logger.LogInformation("Generating PDF for ticket {TicketId}", ticket.Id);
+            var pdfBytes = _pdfService.GenerateTicketPdf(ticket, user, qrBase64);
+            if (pdfBytes == null || pdfBytes.Length == 0)
+            {
+                _logger.LogError("PDF generation returned null or empty for ticket {TicketId}", ticket.Id);
+                return StatusCode(500, "Failed to generate ticket PDF. Please try again.");
+            }
 
-        var filename = $"ticket_{ticket.Id}.pdf";
-        return File(pdfBytes, "application/pdf", filename);
+            _logger.LogInformation("PDF generated successfully for ticket {TicketId}, size: {Size} bytes", ticket.Id, pdfBytes.Length);
+            var filename = $"ticket_{ticket.Id}.pdf";
+            return File(pdfBytes, "application/pdf", filename);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error generating PDF for ticket {TicketId}: {Message}. StackTrace: {StackTrace}", id, ex.Message, ex.StackTrace);
+            return StatusCode(500, "An error occurred while generating your ticket. Please try again later.");
+        }
     }
 
     // POST: /Dashboard/RateTicket

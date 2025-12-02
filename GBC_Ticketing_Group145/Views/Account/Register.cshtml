@@ -48,6 +48,15 @@
                             <span asp-validation-for="ConfirmPassword" class="text-danger small"></span>
                         </div>
 
+                        <div class="mb-3">
+                            <label asp-for="SelectedRole" class="form-label fw-500">Account Type</label>
+                            <select asp-for="SelectedRole" class="form-select">
+                                <option value="Attendee">Attendee</option>
+                                <option value="Organizer">Organizer</option>
+                            </select>
+                            <span asp-validation-for="SelectedRole" class="text-danger small"></span>
+                        </div>
+
                         <div class="d-grid mb-3">
                             <button type="submit" class="btn btn-primary btn-lg">
                                 Register

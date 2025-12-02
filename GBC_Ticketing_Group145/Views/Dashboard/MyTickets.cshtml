@@ -52,24 +52,28 @@
                                     }
                                 </td>
                                 <td>
-                                    <div class="btn-group btn-group-sm" role="group">
-                                        <a class="btn btn-outline-primary" href="@Url.Action("DownloadTicket", "Dashboard", new { id = ticket.Id })">Download PDF</a>
-
-                                        <form method="post" asp-action="RateTicket" style="display:inline-block;">
-                                            <div class="input-group input-group-sm">
-                                                <input type="hidden" name="ticketId" value="@ticket.Id" />
-                                                <select name="rating" class="form-select form-select-sm">
-                                                    <option value="">Rate</option>
-                                                    <option value="1">1 Star</option>
-                                                    <option value="2">2 Stars</option>
-                                                    <option value="3">3 Stars</option>
-                                                    <option value="4">4 Stars</option>
-                                                    <option value="5">5 Stars</option>
-                                                </select>
-                                                <button type="submit" class="btn btn-outline-secondary">Submit</button>
-                                            </div>
-                                        </form>
+                                    <div class="btn-group btn-group-sm mb-2" role="group">
+                                        <a class="btn btn-outline-primary" href="@Url.Action("DownloadTicket", "Dashboard", new { id = ticket.Id })">
+                                            <i class="bi bi-download"></i> Download PDF
+                                        </a>
+                                        <button type="button" class="btn btn-outline-success" onclick="printTicket(@ticket.Id)">
+                                            <i class="bi bi-printer"></i> Print
+                                        </button>
                                     </div>
+                                    <form method="post" asp-action="RateTicket" class="d-inline-block">
+                                        <div class="input-group input-group-sm">
+                                            <input type="hidden" name="ticketId" value="@ticket.Id" />
+                                            <select name="rating" class="form-select form-select-sm" style="max-width: 100px;">
+                                                <option value="">Rate</option>
+                                                <option value="1">1 Star</option>
+                                                <option value="2">2 Stars</option>
+                                                <option value="3">3 Stars</option>
+                                                <option value="4">4 Stars</option>
+                                                <option value="5">5 Stars</option>
+                                            </select>
+                                            <button type="submit" class="btn btn-outline-secondary btn-sm">Submit</button>
+                                        </div>
+                                    </form>
                                 </td>
                             </tr>
                         }
@@ -80,3 +84,24 @@
         </div>
     }
 </div>
+
+@section Scripts {
+    <script>
+        function printTicket(ticketId) {
+            // Open the PDF in a new window and trigger print
+            var url = '@Url.Action("DownloadTicket", "Dashboard")?id=' + ticketId;
+            var printWindow = window.open(url, '_blank');
+            
+            if (printWindow) {
+                // Wait for PDF to load then trigger print
+                printWindow.onload = function() {
+                    setTimeout(function() {
+                        printWindow.print();
+                    }, 250);
+                };
+            } else {
+                alert('Please allow pop-ups to print tickets.');
+            }
+        }
+    </script>
+}

@@ -8,7 +8,6 @@ using System.Linq;
 
 namespace GBC_Ticketing_Group145.Controllers
 {
-    [Authorize]
     public class CategoryController : Controller
     {
         private readonly ApplicationDbContext _context;
@@ -38,6 +37,7 @@ namespace GBC_Ticketing_Group145.Controllers
         }
 
         // GET: Category/Create
+        [Authorize(Roles = "Admin")]
         public IActionResult Create()
         {
             return View();
@@ -46,6 +46,7 @@ namespace GBC_Ticketing_Group145.Controllers
         // POST: Category/Create
         [HttpPost]
         [ValidateAntiForgeryToken]
+        [Authorize(Roles = "Admin")]
         public async Task<IActionResult> Create([Bind("Name,Description")] Category category)
         {
             if (ModelState.IsValid)
@@ -58,6 +59,7 @@ namespace GBC_Ticketing_Group145.Controllers
         }
 
         // GET: Category/Edit/5
+        [Authorize(Roles = "Admin")]
         public async Task<IActionResult> Edit(int? id)
         {
             if (id == null) return NotFound();
@@ -71,6 +73,7 @@ namespace GBC_Ticketing_Group145.Controllers
         // POST: Category/Edit/5
         [HttpPost]
         [ValidateAntiForgeryToken]
+        [Authorize(Roles = "Admin")]
         public async Task<IActionResult> Edit(int id, [Bind("Id,Name,Description")] Category category)
         {
             if (id != category.Id) return NotFound();
@@ -93,6 +96,7 @@ namespace GBC_Ticketing_Group145.Controllers
         }
 
         // GET: Category/Delete/5
+        [Authorize(Roles = "Admin")]
         public async Task<IActionResult> Delete(int? id)
         {
             if (id == null) return NotFound();
@@ -106,6 +110,7 @@ namespace GBC_Ticketing_Group145.Controllers
         // POST: Category/Delete/5
         [HttpPost, ActionName("Delete")]
         [ValidateAntiForgeryToken]
+        [Authorize(Roles = "Admin")]
         public async Task<IActionResult> DeleteConfirmed(int id)
         {
             var category = await _context.Categories.FindAsync(id);

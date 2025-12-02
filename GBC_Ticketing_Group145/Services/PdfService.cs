@@ -19,10 +19,17 @@ public class PdfService : IPdfService
 {
     public byte[] GenerateTicketPdf(Ticket ticket, ApplicationUser user, string qrCodeBase64)
     {
-        using var memoryStream = new MemoryStream();
-        using var writer = new PdfWriter(memoryStream);
-        using var pdf = new PdfDocument(writer);
-        using var document = new Document(pdf, PageSize.A4);
+        try
+        {
+            // Validate input parameters
+            if (ticket == null) throw new ArgumentNullException(nameof(ticket));
+            if (user == null) throw new ArgumentNullException(nameof(user));
+            if (string.IsNullOrEmpty(qrCodeBase64)) throw new ArgumentException("QR code base64 string cannot be null or empty", nameof(qrCodeBase64));
+
+            using var memoryStream = new MemoryStream();
+            using var writer = new PdfWriter(memoryStream);
+            using var pdf = new PdfDocument(writer);
+            using var document = new Document(pdf, PageSize.A4);
         
         // Set margins
         document.SetMargins(40, 40, 40, 40);
@@ -178,23 +185,28 @@ public class PdfService : IPdfService
         // QR Code Section
         if (!string.IsNullOrEmpty(qrCodeBase64))
         {
-            rightColumn.Add(new Paragraph("🔍 SCAN TO VERIFY")
-                .SetFontSize(10)
-                .SetBold()
-                .SetFontColor(primaryColor)
-                .SetTextAlignment(TextAlignment.CENTER)
-                .SetMarginTop(10)
-                .SetMarginBottom(10));
-
-            var qrCodeBytes = Convert.FromBase64String(qrCodeBase64);
-            var qrImage = new Image(ImageDataFactory.Create(qrCodeBytes));
-            qrImage.SetWidth(140);
-            qrImage.SetHeight(140);
-            qrImage.SetHorizontalAlignment(HorizontalAlignment.CENTER);
-            qrImage.SetBorder(new SolidBorder(lightGrayColor, 3));
-            qrImage.SetPadding(5);
-            
-            rightColumn.Add(qrImage);
+            try
+            {
+                var qrCodeBytes = Convert.FromBase64String(qrCodeBase64);
+                var qrImage = new Image(ImageDataFactory.Create(qrCodeBytes));
+                qrImage.SetWidth(140);
+                qrImage.SetHeight(140);
+                qrImage.SetHorizontalAlignment(HorizontalAlignment.CENTER);
+                qrImage.SetBorder(new SolidBorder(lightGrayColor, 3));
+                qrImage.SetPadding(5);
+                
+                rightColumn.Add(qrImage);
+            }
+            catch (Exception)
+            {
+                // If QR code is invalid, add a placeholder text instead
+                rightColumn.Add(new Paragraph("QR Code Error")
+                    .SetFontSize(10)
+                    .SetFontColor(new DeviceRgb(220, 38, 38)) // Red color
+                    .SetTextAlignment(TextAlignment.CENTER)
+                    .SetMarginTop(10)
+                    .SetMarginBottom(10));
+            }
         }
 
         // Ticket ID
@@ -266,5 +278,11 @@ public class PdfService : IPdfService
         document.Close();
         
         return memoryStream.ToArray();
+        }
+        catch (Exception ex)
+        {
+            // Log the error and rethrow with more context
+            throw new Exception($"Failed to generate PDF for ticket {ticket?.Id}: {ex.Message}", ex);
+        }
     }
 }
