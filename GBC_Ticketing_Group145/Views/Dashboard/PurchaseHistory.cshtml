@@ -1,0 +1,204 @@
+@model GBC_Ticketing_Group145.ViewModels.PurchaseHistoryFilterViewModel
+@{
+    ViewData["Title"] = "Purchase History";
+}
+
+<div class="container mt-4">
+    <h1 class="page-title mb-4">Purchase History</h1>
+
+    <!-- Filter Section -->
+    <div class="card border-0 mb-4">
+        <div class="card-header">
+            Filters
+        </div>
+        <div class="card-body">
+            <form asp-action="PurchaseHistory" method="get">
+                <div class="row g-3">
+                    <div class="col-md-3">
+                        <label for="startDate" class="form-label">Start Date</label>
+                        <input type="date" 
+                               class="form-control" 
+                               id="startDate" 
+                               name="startDate" 
+                               value="@Model.StartDate?.ToString("yyyy-MM-dd")" />
+                    </div>
+                    <div class="col-md-3">
+                        <label for="endDate" class="form-label">End Date</label>
+                        <input type="date" 
+                               class="form-control" 
+                               id="endDate" 
+                               name="endDate" 
+                               value="@Model.EndDate?.ToString("yyyy-MM-dd")" />
+                    </div>
+                    <div class="col-md-3">
+                        <label for="categoryId" class="form-label">Category</label>
+                        <select class="form-select" id="categoryId" name="categoryId">
+                            <option value="">All Categories</option>
+                            @foreach (var category in Model.Categories)
+                            {
+                                <option value="@category.Id" 
+                                        selected="@(Model.CategoryId == category.Id)">
+                                    @category.Name
+                                </option>
+                            }
+                        </select>
+                    </div>
+                    <div class="col-md-3 d-flex align-items-end">
+                        <div class="form-check mb-2">
+                            <input class="form-check-input" 
+                                   type="checkbox" 
+                                   id="showOnlyPastEvents" 
+                                   name="showOnlyPastEvents" 
+                                   value="true"
+                                   checked="@Model.ShowOnlyPastEvents" />
+                            <label class="form-check-label" for="showOnlyPastEvents">
+                                Past Events Only
+                            </label>
+                        </div>
+                    </div>
+                </div>
+                <div class="row mt-3">
+                    <div class="col-md-12">
+                        <button type="submit" class="btn btn-primary">Apply Filters</button>
+                        <a asp-action="PurchaseHistory" class="btn btn-secondary">Clear Filters</a>
+                    </div>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    @if (!Model.PurchaseHistory.Any())
+    {
+        <div class="alert alert-info" role="alert">
+            <h4 class="alert-heading">No Purchase History</h4>
+            <p>You haven't purchased any tickets yet, or no tickets match your filter criteria.</p>
+            <hr>
+            <a asp-controller="Event" asp-action="Index" class="btn btn-primary">Browse Events</a>
+        </div>
+    }
+    else
+    {
+        <!-- Summary -->
+        <div class="row mb-4">
+            <div class="col-md-4">
+                <div class="card border-0 summary-card">
+                    <div class="card-body text-center">
+                        <h3 class="text-primary mb-2">@Model.PurchaseHistory.Count</h3>
+                        <p class="text-muted mb-0">Total Tickets</p>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="card border-0 summary-card">
+                    <div class="card-body text-center">
+                        <h3 class="text-success mb-2">@Model.PurchaseHistory.Sum(p => p.Price).ToString("C")</h3>
+                        <p class="text-muted mb-0">Total Spent</p>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="card border-0 summary-card">
+                    <div class="card-body text-center">
+                        <h3 class="text-warning mb-2">@Model.PurchaseHistory.Count(p => p.IsPastEvent)</h3>
+                        <p class="text-muted mb-0">Past Events</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Purchase History Table -->
+        <div class="card border-0">
+            <div class="card-header">
+                Your Tickets
+            </div>
+            <div class="card-body p-0">
+                <div class="table-responsive">
+                    <table class="table table-hover mb-0">
+                        <thead>
+                            <tr>
+                                <th>Event</th>
+                                <th>Category</th>
+                                <th>Event Date</th>
+                                <th>Purchased</th>
+                                <th>Location</th>
+                                <th>Price</th>
+                                <th>Rating</th>
+                                <th>Status</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach (var purchase in Model.PurchaseHistory)
+                            {
+                                <tr>
+                                    <td>
+                                        <strong>@purchase.EventTitle</strong>
+                                    </td>
+                                    <td>
+                                        <span class="badge bg-secondary">@purchase.CategoryName</span>
+                                    </td>
+                                    <td>
+                                        @purchase.EventDate.ToLocalTime().ToString("MMM dd, yyyy HH:mm")
+                                    </td>
+                                    <td>
+                                        <small>@purchase.PurchasedAt.ToLocalTime().ToString("MMM dd, yyyy")</small>
+                                    </td>
+                                    <td>@purchase.Price.ToString("C")</td>
+                                    <td>
+                                        @if (purchase.Rating.HasValue)
+                                        {
+                                            <div class="rating-display">
+                                                @for (int i = 1; i <= 5; i++)
+                                                {
+                                                    if (i <= purchase.Rating.Value)
+                                                    {
+                                                        <span class="text-warning">★</span>
+                                                    }
+                                                    else
+                                                    {
+                                                        <span class="text-muted">☆</span>
+                                                    }
+                                                }
+                                            </div>
+                                        }
+                                        else if (purchase.IsPastEvent)
+                                        {
+                                            <a asp-action="MyTickets" class="btn btn-sm btn-outline-primary">Rate</a>
+                                        }
+                                        else
+                                        {
+                                            <small class="text-muted">N/A</small>
+                                        }
+                                    </td>
+                                    <td>
+                                        @if (purchase.IsPastEvent)
+                                        {
+                                            <span class="badge bg-secondary">Past</span>
+                                        }
+                                        else
+                                        {
+                                            <span class="badge bg-success">Upcoming</span>
+                                        }
+                                    </td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <!-- Additional Info -->
+        <div class="alert alert-info mt-4" role="alert">
+            <strong>Note:</strong> You can rate past events from your 
+            <a asp-action="MyTickets" class="alert-link">My Tickets</a> page. 
+            Download your ticket PDFs and QR codes from there as well.
+        </div>
+    }
+</div>
+
+<style>
+    .rating-display {
+        font-size: 1.2rem;
+        white-space: nowrap;
+    }
+</style>

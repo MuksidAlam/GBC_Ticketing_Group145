@@ -1,0 +1,149 @@
+@model GBC_Ticketing_Group145.ViewModels.MyEventsDashboardViewModel
+@{
+    ViewData["Title"] = "My Events";
+}
+
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h1 class="page-title mb-0">My Events Dashboard</h1>
+    <a asp-controller="Event" asp-action="Create" class="btn btn-primary">Create New Event</a>
+</div>
+
+    <!-- Summary Cards -->
+    <div class="row mb-4">
+        <div class="col-md-4 mb-3">
+            <div class="card border-0 summary-card">
+                <div class="card-body">
+                    <h3 class="text-primary">@Model.TotalEvents</h3>
+                    <p>Total Events Created</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4 mb-3">
+            <div class="card border-0 summary-card">
+                <div class="card-body">
+                    <h3 class="text-success">@Model.TotalTicketsSold</h3>
+                    <p>Tickets Sold</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4 mb-3">
+            <div class="card border-0 summary-card">
+                <div class="card-body">
+                    <h3 class="text-info">@Model.TotalRevenue.ToString("C")</h3>
+                    <p>Total Revenue</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    @if (!Model.Events.Any())
+    {
+        <div class="alert alert-info" role="alert">
+            <h5 class="alert-heading">No Events Yet</h5>
+            <p>You haven't created any events yet. Start by creating your first event!</p>
+            <hr>
+            <a asp-controller="Event" asp-action="Create" class="btn btn-primary">Create Your First Event</a>
+        </div>
+    }
+    else
+    {
+        <!-- Events Table -->
+        <div class="card border-0">
+            <div class="card-header">
+                My Events
+            </div>
+            <div class="card-body p-0">
+                <div class="table-responsive">
+                    <table class="table table-hover mb-0">
+                        <thead>
+                            <tr>
+                                <th>Event Title</th>
+                                <th>Category</th>
+                                <th>Date &amp; Time</th>
+                                <th>Price</th>
+                                <th>Available</th>
+                                <th>Sold</th>
+                                <th>Revenue</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach (var evt in Model.Events)
+                            {
+                                <tr>
+                                    <td>
+                                        <strong>@evt.Title</strong>
+                                    </td>
+                                    <td>
+                                        <span class="badge bg-secondary">@evt.CategoryName</span>
+                                    </td>
+                                    <td>
+                                        @evt.EventDate.ToLocalTime().ToString("MMM dd, yyyy HH:mm")
+                                    </td>
+                                    <td>@evt.Price.ToString("C")</td>
+                                    <td>
+                                        @if (evt.AvailableTickets < 10)
+                                        {
+                                            <span class="badge bg-warning text-dark">@evt.AvailableTickets</span>
+                                        }
+                                        else
+                                        {
+                                            <span class="badge bg-success">@evt.AvailableTickets</span>
+                                        }
+                                    </td>
+                                    <td>
+                                        <strong>@evt.TotalTicketsSold</strong>
+                                    </td>
+                                    <td>
+                                        <strong class="text-success">@evt.TotalRevenue.ToString("C")</strong>
+                                    </td>
+                                    <td>
+                                        <div class="btn-group btn-group-sm" role="group">
+                                            <a asp-controller="Event" asp-action="Details" asp-route-id="@evt.EventId" 
+                                               class="btn btn-outline-primary">View</a>
+                                            <a asp-controller="Event" asp-action="Edit" asp-route-id="@evt.EventId" 
+                                               class="btn btn-outline-secondary">Edit</a>
+                                            <a asp-controller="Event" asp-action="Delete" asp-route-id="@evt.EventId" 
+                                               class="btn btn-outline-danger">Delete</a>
+                                        </div>
+                                    </td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <!-- Performance Summary -->
+        <div class="row mt-4">
+            <div class="col-md-12">
+                <div class="card border-0">
+                    <div class="card-header">
+                        Performance Analytics
+                    </div>
+                    <div class="card-body">
+                        <div class="row">
+                            <div class="col-md-3">
+                                <div class="text-muted small mb-1">Average Revenue per Event</div>
+                                <h5 class="fw-bold">@((Model.TotalEvents > 0 ? Model.TotalRevenue / Model.TotalEvents : 0).ToString("C"))</h5>
+                            </div>
+                            <div class="col-md-3">
+                                <div class="text-muted small mb-1">Average Tickets Sold per Event</div>
+                                <h5 class="fw-bold">@(Model.TotalEvents > 0 ? Math.Round((decimal)Model.TotalTicketsSold / Model.TotalEvents, 1) : 0)</h5>
+                            </div>
+                            <div class="col-md-3">
+                                <div class="text-muted small mb-1">Total Available Tickets</div>
+                                <h5 class="fw-bold">@Model.Events.Sum(e => e.AvailableTickets)</h5>
+                            </div>
+                            <div class="col-md-3">
+                                <div class="text-muted small mb-1">Upcoming Events</div>
+                                <h5 class="fw-bold">@Model.Events.Count(e => e.EventDate >= DateTime.UtcNow)</h5>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    }
+</div>

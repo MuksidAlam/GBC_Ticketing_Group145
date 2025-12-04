@@ -1,0 +1,82 @@
+@model IEnumerable<GBC_Ticketing_Group145.Models.Ticket>
+
+@{
+    ViewData["Title"] = "My Tickets";
+}
+
+<div class="container mt-4">
+    <h1 class="page-title mb-4">My Tickets</h1>
+
+    @if (!Model.Any())
+    {
+        <div class="alert alert-info" role="alert">
+            <h4 class="alert-heading">No Tickets</h4>
+            <p>You haven't purchased any tickets yet.</p>
+            <hr>
+            <a asp-controller="Event" asp-action="Index" class="btn btn-primary">Browse Events</a>
+        </div>
+    }
+    else
+    {
+        <div class="card border-0">
+            <div class="card-header">
+                Your Tickets
+            </div>
+            <div class="card-body p-0">
+                <div class="table-responsive">
+                    <table class="table table-hover mb-0">
+                        <thead>
+                            <tr>
+                                <th>Event</th>
+                                <th>Purchased At</th>
+                                <th>Price</th>
+                                <th>QR Code</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                        @foreach (var ticket in Model)
+                        {
+                            <tr>
+                                <td>
+                                    <strong>@ticket.Event?.Title</strong>
+                                </td>
+                                <td>
+                                    <small>@ticket.PurchasedAt.ToLocalTime().ToString("MMM dd, yyyy HH:mm")</small>
+                                </td>
+                                <td>@ticket.Price.ToString("C")</td>
+                                <td>
+                                    @if (!string.IsNullOrEmpty(ticket.QRCode))
+                                    {
+                                        <img src="data:image/png;base64,@ticket.QRCode" alt="QR Code" width="60" class="img-thumbnail" />
+                                    }
+                                </td>
+                                <td>
+                                    <div class="btn-group btn-group-sm" role="group">
+                                        <a class="btn btn-outline-primary" href="@Url.Action("DownloadTicket", "Dashboard", new { id = ticket.Id })">Download PDF</a>
+
+                                        <form method="post" asp-action="RateTicket" style="display:inline-block;">
+                                            <div class="input-group input-group-sm">
+                                                <input type="hidden" name="ticketId" value="@ticket.Id" />
+                                                <select name="rating" class="form-select form-select-sm">
+                                                    <option value="">Rate</option>
+                                                    <option value="1">1 Star</option>
+                                                    <option value="2">2 Stars</option>
+                                                    <option value="3">3 Stars</option>
+                                                    <option value="4">4 Stars</option>
+                                                    <option value="5">5 Stars</option>
+                                                </select>
+                                                <button type="submit" class="btn btn-outline-secondary">Submit</button>
+                                            </div>
+                                        </form>
+                                    </div>
+                                </td>
+                            </tr>
+                        }
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    }
+</div>
