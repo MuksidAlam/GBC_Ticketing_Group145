@@ -1,0 +1,439 @@
+﻿<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8"/>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+    <title>@ViewData["Title"] - GBC Event Ticketing</title>
+    <link rel="stylesheet" href="~/lib/bootstrap/dist/css/bootstrap.min.css"/>
+    <link rel="stylesheet" href="~/css/site.css" asp-append-version="true"/>
+    <link rel="stylesheet" href="~/GBC_Ticketing_Group145.styles.css" asp-append-version="true"/>
+    <style>
+        :root {
+            --primary-color: #2c3e50;
+            --secondary-color: #3498db;
+            --accent-color: #e74c3c;
+            --success-color: #27ae60;
+            --light-bg: #ecf0f1;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: #f8f9fa;
+            color: #2c3e50;
+        }
+
+        .navbar {
+            background: linear-gradient(135deg, var(--primary-color) 0%, #34495e 100%);
+            box-shadow: 0 2px 8px rgba(0,0,0,0.15);
+        }
+
+        .navbar-brand {
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: white !important;
+            letter-spacing: 0.5px;
+        }
+
+        .nav-link {
+            color: rgba(255,255,255,0.85) !important;
+            transition: all 0.3s ease;
+            margin: 0 5px;
+        }
+
+        .nav-link:hover {
+            color: white !important;
+            text-decoration: underline;
+        }
+
+        .dropdown-menu {
+            border-radius: 8px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+            border: none;
+        }
+
+        .dropdown-item {
+            padding: 0.75rem 1.25rem;
+            transition: all 0.2s ease;
+        }
+
+        .dropdown-item:hover {
+            background-color: var(--secondary-color);
+            color: white;
+        }
+
+        .container {
+            max-width: 1200px;
+        }
+
+        main {
+            min-height: calc(100vh - 200px);
+        }
+
+        .card {
+            border: none;
+            border-radius: 10px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+            transition: all 0.3s ease;
+        }
+
+        .card:hover {
+            box-shadow: 0 4px 16px rgba(0,0,0,0.15);
+            transform: translateY(-2px);
+        }
+
+        .btn {
+            border-radius: 6px;
+            font-weight: 600;
+            padding: 0.6rem 1.5rem;
+            transition: all 0.3s ease;
+            text-transform: uppercase;
+            font-size: 0.875rem;
+            letter-spacing: 0.5px;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, var(--secondary-color) 0%, #2980b9 100%);
+            border: none;
+        }
+
+        .btn-primary:hover {
+            background: linear-gradient(135deg, #2980b9 0%, #1f618d 100%);
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(52, 152, 219, 0.4);
+        }
+
+        .btn-success {
+            background: linear-gradient(135deg, var(--success-color) 0%, #1e8449 100%);
+            border: none;
+        }
+
+        .btn-success:hover {
+            background: linear-gradient(135deg, #1e8449 0%, #145a32 100%);
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(39, 174, 96, 0.4);
+        }
+
+        .btn-outline-primary {
+            color: var(--secondary-color);
+            border: 2px solid var(--secondary-color);
+        }
+
+        .btn-outline-primary:hover {
+            background-color: var(--secondary-color);
+            border-color: var(--secondary-color);
+        }
+
+        .badge {
+            padding: 0.5rem 0.75rem;
+            font-weight: 600;
+            font-size: 0.8rem;
+        }
+
+        .footer {
+            background: linear-gradient(135deg, var(--primary-color) 0%, #34495e 100%);
+            color: white !important;
+            margin-top: 3rem;
+        }
+
+        .footer p {
+            margin: 0;
+        }
+
+        .alert {
+            border: none;
+            border-radius: 8px;
+            border-left: 4px solid;
+        }
+
+        .alert-info {
+            border-left-color: var(--secondary-color);
+            background-color: #d1ecf1;
+            color: #0c5460;
+        }
+
+        .alert-success {
+            border-left-color: var(--success-color);
+            background-color: #d4edda;
+            color: #155724;
+        }
+
+        .alert-warning {
+            border-left-color: #ffc107;
+            background-color: #fff3cd;
+            color: #856404;
+        }
+
+        .alert-danger {
+            border-left-color: var(--accent-color);
+            background-color: #f8d7da;
+            color: #721c24;
+        }
+
+        .table {
+            background-color: white;
+            border-radius: 8px;
+            overflow: hidden;
+        }
+
+        .table thead {
+            background-color: var(--primary-color);
+            color: white;
+        }
+
+        .table th {
+            border: none;
+            font-weight: 600;
+            text-transform: uppercase;
+            font-size: 0.85rem;
+            letter-spacing: 0.5px;
+            padding: 1rem;
+        }
+
+        .table td {
+            padding: 0.75rem 1rem;
+            vertical-align: middle;
+            border-top: 1px solid #e9ecef;
+        }
+
+        .table tbody tr:hover {
+            background-color: #f8f9fa;
+        }
+
+        .form-control, .form-select {
+            border: 1px solid #dee2e6;
+            border-radius: 6px;
+            padding: 0.625rem 0.875rem;
+            transition: all 0.3s ease;
+        }
+
+        .form-control:focus, .form-select:focus {
+            border-color: var(--secondary-color);
+            box-shadow: 0 0 0 0.2rem rgba(52, 152, 219, 0.25);
+        }
+
+        .form-label {
+            font-weight: 600;
+            margin-bottom: 0.5rem;
+            color: var(--primary-color);
+        }
+
+        .page-title {
+            font-size: 2rem;
+            font-weight: 700;
+            color: var(--primary-color);
+            margin-bottom: 1.5rem;
+            padding-bottom: 1rem;
+            border-bottom: 3px solid var(--secondary-color);
+        }
+
+        .card-header {
+            background: linear-gradient(135deg, var(--primary-color) 0%, #34495e 100%);
+            border: none;
+            color: white;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .summary-card {
+            text-align: center;
+            padding: 2rem 1rem;
+        }
+
+        .summary-card h3 {
+            font-weight: 700;
+            font-size: 1.75rem;
+            margin-bottom: 0.5rem;
+        }
+
+        .summary-card p {
+            font-size: 0.9rem;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            font-weight: 600;
+        }
+    </style>
+</head>
+<body>
+<header>
+    <nav class="navbar navbar-expand-lg navbar-dark sticky-top">
+        <div class="container">
+            <a class="navbar-brand" asp-controller="Home" asp-action="Index">
+                GBC Events
+            </a>
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse" id="navbarNav">
+                <ul class="navbar-nav ms-auto">
+                    <li class="nav-item">
+                        <a class="nav-link" asp-controller="Home" asp-action="Index">
+                            Home
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" asp-controller="Event" asp-action="Index">
+                            Events
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" asp-controller="Category" asp-action="Index">
+                            Categories
+                        </a>
+                    </li>
+                    
+                    @if (User.Identity?.IsAuthenticated == true)
+                    {
+                        <li class="nav-item">
+                            <a class="nav-link position-relative" asp-controller="Cart" asp-action="Index">
+                                Cart
+                                <span id="cartBadge" class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger" style="display: none;">
+                                    0
+                                </span>
+                            </a>
+                        </li>
+                        <li class="nav-item dropdown">
+                            <a class="nav-link dropdown-toggle" href="#" id="userMenu" role="button" data-bs-toggle="dropdown">
+                                @User.Identity.Name
+                            </a>
+                            <ul class="dropdown-menu dropdown-menu-end">
+                                <li>
+                                    <a class="dropdown-item" asp-controller="Dashboard" asp-action="MyTickets">
+                                        My Tickets
+                                    </a>
+                                </li>
+                                <li>
+                                    <a class="dropdown-item" asp-controller="Dashboard" asp-action="PurchaseHistory">
+                                        Purchase History
+                                    </a>
+                                </li>
+                                @if (User.IsInRole("Organizer") || User.IsInRole("Admin"))
+                                {
+                                    <li><hr class="dropdown-divider"></li>
+                                    <li>
+                                        <a class="dropdown-item" asp-controller="Dashboard" asp-action="MyEvents">
+                                            My Events
+                                        </a>
+                                    </li>
+                                }
+                                <li><hr class="dropdown-divider"></li>
+                                <li>
+                                    <form asp-controller="Account" asp-action="Logout" method="post" class="d-inline w-100">
+                                        <button type="submit" class="dropdown-item w-100 text-start">
+                                            Logout
+                                        </button>
+                                    </form>
+                                </li>
+                            </ul>
+                        </li>
+                    }
+                    else
+                    {
+                        <li class="nav-item">
+                            <a class="nav-link" asp-controller="Account" asp-action="Login">
+                                Login
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" asp-controller="Account" asp-action="Register">
+                                Register
+                            </a>
+                        </li>
+                    }
+                </ul>
+            </div>
+        </div>
+    </nav>
+</header>
+
+<main role="main" class="py-4">
+    <div class="container">
+        @RenderBody()
+    </div>
+</main>
+
+<footer class="footer text-muted mt-5 py-4">
+    <div class="container text-center">
+        <p class="mb-0">&copy; 2025 GBC Event Ticketing System - Group 145. All Rights Reserved.</p>
+    </div>
+</footer>
+
+<script src="~/lib/jquery/dist/jquery.min.js"></script>
+<script src="~/lib/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
+<script src="~/js/site.js" asp-append-version="true"></script>
+
+@if (User.Identity?.IsAuthenticated == true)
+{
+    <script>
+        // Load cart count on page load
+        $(document).ready(function() {
+            updateCartBadge();
+        });
+
+        function updateCartBadge() {
+            $.get('@Url.Action("GetCartCount", "Cart")', function(data) {
+                if (data.cartCount > 0) {
+                    $('#cartBadge').text(data.cartCount).show();
+                } else {
+                    $('#cartBadge').hide();
+                }
+            });
+        }
+
+        // Global Add to Cart handler
+        $(document).on('click', '.add-to-cart-btn', function() {
+            const button = $(this);
+            const eventId = button.data('event-id');
+            const eventTitle = button.data('event-title');
+            const availableTickets = button.data('available-tickets');
+            
+            button.prop('disabled', true).html('Adding...');
+
+            $.ajax({
+                url: '@Url.Action("AddToCart", "Cart")',
+                type: 'POST',
+                contentType: 'application/json',
+                data: JSON.stringify({
+                    eventId: eventId,
+                    quantity: 1
+                }),
+                success: function(response) {
+                    if (response.success) {
+                        updateCartBadge();
+                        alert('Success: "' + eventTitle + '" added to cart!');
+                        
+                        if (response.lowStockWarning) {
+                            alert('Warning: ' + response.lowStockWarning);
+                        }
+                        
+                        button.html('Added!').addClass('btn-success').removeClass('btn-primary');
+                        setTimeout(function() {
+                            button.html('Add to Cart').removeClass('btn-success').addClass('btn-primary').prop('disabled', false);
+                        }, 2000);
+                    } else {
+                        alert('Error: ' + response.message);
+                        button.html('Add to Cart').prop('disabled', false);
+                    }
+                },
+                error: function() {
+                    alert('Failed to add item to cart. Please try again.');
+                    button.html('Add to Cart').prop('disabled', false);
+                }
+            });
+        });
+    </script>
+}
+            });
+        });
+    </script>
+}
+
+@await RenderSectionAsync("Scripts", required: false)
+</body>
+</html>
+<footer class="border-top footer text-muted">
+    <div class="container">
+        &copy; 2025 GBC Ticketing System - Group 145
+        <p class="mb-0">Team Members: Al Muksid Alam Alvi, Samuel</p>
+    </div>
+</footer>

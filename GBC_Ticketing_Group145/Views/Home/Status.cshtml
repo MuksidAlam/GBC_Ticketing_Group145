@@ -1,0 +1,27 @@
+@model int
+
+@{
+    var code = Model;
+    ViewData["Title"] = code == 404 ? "Page not found" : "Error";
+}
+
+<div class="text-center mt-5">
+    @if (code == 404)
+    {
+        <h1>404 — Page not found</h1>
+        <p>The page you requested could not be found.</p>
+        <a class="btn btn-primary" href="@Url.Action("Index", "Home")">Return to home</a>
+    }
+    else if (code == 500)
+    {
+        <h1>500 — Server error</h1>
+        <p>Something went wrong on our end. The team has been notified.</p>
+        <a class="btn btn-primary" href="@Url.Action("Index", "Home")">Return to home</a>
+    }
+    else
+    {
+        <h1>@code — Error</h1>
+        <p>An unexpected error occurred.</p>
+        <a class="btn btn-primary" href="@Url.Action("Index", "Home")">Return to home</a>
+    }
+</div>

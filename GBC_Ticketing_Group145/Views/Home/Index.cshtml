@@ -1,0 +1,42 @@
+﻿@{
+    ViewData["Title"] = "Home";
+}
+
+<div class="row mb-5">
+    <div class="col-lg-12">
+        <div class="card border-0" style="background: linear-gradient(135deg, #2c3e50 0%, #3498db 100%); color: white; padding: 3rem;">
+            <div class="card-body text-center">
+                <h1 class="display-4 fw-bold mb-3">Welcome to GBC Events</h1>
+                <p class="lead mb-4">Discover, book, and manage your favorite events with ease</p>
+                <a href="@Url.Action("Index", "Event")" class="btn btn-light btn-lg fw-bold">Browse Events</a>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row mb-5">
+    <div class="col-lg-4 mb-3">
+        <div class="card h-100 border-0">
+            <div class="card-body">
+                <h5 class="card-title fw-bold mb-3">Discover Events</h5>
+                <p class="card-text text-muted">Browse through a wide selection of concerts, conferences, workshops, and more.</p>
+            </div>
+        </div>
+    </div>
+    <div class="col-lg-4 mb-3">
+        <div class="card h-100 border-0">
+            <div class="card-body">
+                <h5 class="card-title fw-bold mb-3">Easy Booking</h5>
+                <p class="card-text text-muted">Quick and secure ticket purchase with instant confirmation and digital delivery.</p>
+            </div>
+        </div>
+    </div>
+    <div class="col-lg-4 mb-3">
+        <div class="card h-100 border-0">
+            <div class="card-body">
+                <h5 class="card-title fw-bold mb-3">Manage Your Tickets</h5>
+                <p class="card-text text-muted">Keep all your tickets in one place with easy download and QR code access.</p>
+            </div>
+        </div>
+    </div>
+</div>
